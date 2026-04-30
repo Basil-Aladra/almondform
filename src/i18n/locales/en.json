@@ -1,0 +1,53 @@
+{
+  "form": {
+    "title": "Event Booking Form",
+    "subtitle": "Tell us about your occasion, and we will help create an unforgettable experience.",
+    "secure": "Your data is secure and protected",
+    "fullName": {
+      "label": "Full Name",
+      "placeholder": "Enter your full name",
+      "error": "Full name is required"
+    },
+    "phoneNumber": {
+      "label": "Phone Number",
+      "placeholder": "Enter your phone number",
+      "error": "Phone number is required"
+    },
+    "birthDate": {
+      "label": "Birth Date",
+      "placeholder": "Select birth date",
+      "error": "Birth date is required"
+    },
+    "occasion": {
+      "label": "Occasion Type",
+      "placeholder": "Select occasion type",
+      "error": "Please select an occasion type"
+    },
+    "otherOccasion": {
+      "label": "Other Occasion Details",
+      "placeholder": "Please write the occasion here...",
+      "error": "Please write the occasion details"
+    },
+    "occasions": {
+      "wedding": "Wedding",
+      "birthday": "Birthday",
+      "engagement": "Engagement",
+      "graduation": "Graduation",
+      "other": "Other"
+    },
+    "submit": {
+      "button": "Submit",
+      "sending": "Sending...",
+      "success": "Your request was sent successfully!",
+      "error": "Failed to submit your request. Please try again."
+    },
+    "validation": {
+      "required": "Please complete the required fields",
+      "invalidPhone": "Invalid phone number",
+      "minPhone": "Phone number must contain at least 8 digits"
+    }
+  },
+  "language": {
+    "switch": "العربية"
+  }
+}

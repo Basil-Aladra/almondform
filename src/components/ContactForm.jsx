@@ -1,248 +1,659 @@
-import React, { useState } from 'react';
-import {
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  Box,
-  Typography,
-  CircularProgress,
-  Alert,
-  Snackbar,
-  Fade,
-} from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
-// 🔗 ضع رابط Google Apps Script هنا
-const API_URL = 'https://script.google.com/macros/s/AKfycbzn113Ai_-N08-E7z8dZkXwor5IDlHzypeBckMj5KKrjCVc_1nfA8SC7jxi2WHcz4C-/exec';
-
-// 🎨 Styled Components
-const StyledCard = styled(Card)(() => ({
-  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.2)',
-  borderRadius: '16px',
-  animation: 'fadeInScale 0.6s ease-in-out',
-  '@keyframes fadeInScale': {
-    from: { opacity: 0, transform: 'scale(0.95)' },
-    to: { opacity: 1, transform: 'scale(1)' },
-  },
-}));
-
-const StyledTextField = styled(TextField)(() => ({
-  '& .MuiOutlinedInput-root': {
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-    },
-    '&.Mui-focused': {
-      boxShadow: '0 4px 20px rgba(25,118,210,0.3)',
-    },
-  },
-}));
-
-const StyledButton = styled(Button)(() => ({
-  padding: '12px',
-  fontWeight: 600,
-  borderRadius: '8px',
-  textTransform: 'none',
-}));
-
-// ✅ Validation
-const validateEmail = (email) =>
-  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const API_URL = 'https://script.google.com/macros/s/AKfycbzn113Ai_-N08-E7z8dZkXwor5IDlHzypeBckMj5KKrjCVc_1nfA8SC7jxi2WHcz4C-/exec'
 
 const validatePhone = (phone) =>
-  /^[\d\s\-+()]+$/.test(phone) && phone.replace(/\D/g, '').length >= 8;
+  /^[\d\s\-+()]+$/.test(phone) && phone.replace(/\D/g, '').length >= 8
 
-// 🚀 Component
-function ContactForm() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: '',
-  });
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-  const [submittedSuccessfully, setSubmittedSuccessfully] = useState(false);
+function launchRealisticConfetti(originElement) {
+  if (typeof window === 'undefined' || !originElement) return
 
-  // 🔄 Handle Change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (prefersReducedMotion) return
 
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }));
+  const rect = originElement.getBoundingClientRect()
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const colors = ['#009F79', '#007A5D', '#FFFFFF', '#FFF9ED', '#D4A843', '#C8D6D1']
+  const particleCount = window.innerWidth < 640 ? 84 : 128
+  const origin = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height * 0.2,
+  }
+  const particles = Array.from({ length: particleCount }, (_, index) => {
+    const angle = (-90 + (Math.random() - 0.5) * 92) * (Math.PI / 180)
+    const speed = 7 + Math.random() * 8
+    const size = 5 + Math.random() * 8
+    const isRibbon = index % 4 === 0
+
+    return {
+      x: origin.x + (Math.random() - 0.5) * rect.width * 0.55,
+      y: origin.y + (Math.random() - 0.5) * 8,
+      vx: Math.cos(angle) * speed + (Math.random() - 0.5) * 1.8,
+      vy: Math.sin(angle) * speed - Math.random() * 4,
+      gravity: 0.18 + Math.random() * 0.08,
+      drag: 0.986 + Math.random() * 0.006,
+      wobble: Math.random() * Math.PI * 2,
+      wobbleSpeed: 0.08 + Math.random() * 0.12,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.34,
+      width: isRibbon ? size * 0.55 : size,
+      height: isRibbon ? size * 1.9 : size * 0.62,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      opacity: 1,
+      life: 0,
+      decay: 0.008 + Math.random() * 0.007,
     }
-  };
+  })
+  let animationFrame = null
 
-  // ✅ Validate
-  const validateForm = () => {
-    const newErrors = {};
+  const resizeCanvas = () => {
+    canvas.width = window.innerWidth * dpr
+    canvas.height = window.innerHeight * dpr
+    canvas.style.width = `${window.innerWidth}px`
+    canvas.style.height = `${window.innerHeight}px`
+    context.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+  canvas.className = 'confetti-canvas'
+  canvas.setAttribute('aria-hidden', 'true')
+  resizeCanvas()
+  document.body.appendChild(canvas)
+  window.addEventListener('resize', resizeCanvas)
+
+  const cleanup = () => {
+    cancelAnimationFrame(animationFrame)
+    window.removeEventListener('resize', resizeCanvas)
+    canvas.remove()
+  }
+
+  const render = () => {
+    context.clearRect(0, 0, window.innerWidth, window.innerHeight)
+
+    particles.forEach((particle) => {
+      particle.life += 1
+      particle.vx *= particle.drag
+      particle.vy = particle.vy * particle.drag + particle.gravity
+      particle.x += particle.vx + Math.sin(particle.wobble) * 0.75
+      particle.y += particle.vy
+      particle.wobble += particle.wobbleSpeed
+      particle.rotation += particle.rotationSpeed
+      particle.opacity = Math.max(0, particle.opacity - particle.decay)
+
+      context.save()
+      context.globalAlpha = particle.opacity
+      context.translate(particle.x, particle.y)
+      context.rotate(particle.rotation)
+      context.fillStyle = particle.color
+      context.fillRect(-particle.width / 2, -particle.height / 2, particle.width, particle.height)
+      context.restore()
+    })
+
+    const activeParticles = particles.filter((particle) => (
+      particle.opacity > 0.02 &&
+      particle.y < window.innerHeight + 80 &&
+      particle.x > -80 &&
+      particle.x < window.innerWidth + 80
+    ))
+
+    if (activeParticles.length > 0) {
+      animationFrame = requestAnimationFrame(render)
+    } else {
+      cleanup()
     }
+  }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Invalid email';
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone is required';
-    } else if (!validatePhone(formData.phone)) {
-      newErrors.phone = 'Invalid phone';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // 📤 Submit
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      setSnackbarMessage('Please fix the errors');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors', // مهم مع Google Apps Script
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone.trim(),
-          message: formData.message.trim(),
-        }),
-      });
-
-      // ✅ Success
-      setSubmittedSuccessfully(true);
-      setSnackbarMessage('Message sent successfully ✅');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
-
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        message: '',
-      });
-
-      setErrors({});
-
-      setTimeout(() => {
-        setSubmittedSuccessfully(false);
-      }, 4000);
-
-    } catch (error) {
-      console.error(error);
-      setSnackbarMessage('Error sending message ❌');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-    }
-
-    setLoading(false);
-  };
-
-  // 🔔 Snackbar Close
-  const handleCloseSnackbar = (_, reason) => {
-    if (reason === 'clickaway') return;
-    setOpenSnackbar(false);
-  };
-
-  return (
-    <Fade in timeout={800}>
-      <StyledCard>
-        <CardContent sx={{ p: 4 }}>
-
-          <Typography variant="h4" textAlign="center" mb={1}>
-            Contact Us
-          </Typography>
-
-          <Typography textAlign="center" mb={3} color="text.secondary">
-            Send us a message
-          </Typography>
-
-          {submittedSuccessfully && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              Message received successfully!
-            </Alert>
-          )}
-
-          <Box component="form" onSubmit={handleSubmit} noValidate>
-
-            <StyledTextField
-              fullWidth label="Name" name="name"
-              value={formData.name} onChange={handleChange}
-              error={!!errors.name} helperText={errors.name}
-              margin="normal"
-            />
-
-            <StyledTextField
-              fullWidth label="Email" name="email"
-              value={formData.email} onChange={handleChange}
-              error={!!errors.email} helperText={errors.email}
-              margin="normal"
-            />
-
-            <StyledTextField
-              fullWidth label="Phone" name="phone"
-              value={formData.phone} onChange={handleChange}
-              error={!!errors.phone} helperText={errors.phone}
-              margin="normal"
-            />
-
-            <StyledTextField
-              fullWidth multiline rows={4}
-              label="Message" name="message"
-              value={formData.message} onChange={handleChange}
-              margin="normal"
-            />
-
-            <StyledButton
-              fullWidth type="submit" variant="contained"
-              disabled={loading} sx={{ mt: 2 }}
-            >
-              {loading ? <CircularProgress size={20} /> : 'Send'}
-            </StyledButton>
-
-          </Box>
-
-          <Typography textAlign="center" mt={2} fontSize={12}>
-            Your data is محفوظ وآمن 👍
-          </Typography>
-
-        </CardContent>
-
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={4000}
-          onClose={handleCloseSnackbar}
-        >
-          <Alert severity={snackbarSeverity}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
-
-      </StyledCard>
-    </Fade>
-  );
+  animationFrame = requestAnimationFrame(render)
+  window.setTimeout(cleanup, 4200)
 }
 
-export default ContactForm;
+function UserIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  )
+}
+
+function PhoneIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.95.37 1.88.7 2.78a2 2 0 0 1-.45 2.11L8.09 9.88a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.83.57 2.78.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  )
+}
+
+function CalendarIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="3" />
+      <path d="M16 2v4M8 2v4M3 10h18" />
+    </svg>
+  )
+}
+
+function CakeIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-8H4v8" />
+      <path d="M4 16.5c1.5 0 1.5-1 3-1s1.5 1 3 1 1.5-1 3-1 1.5 1 3 1 1.5-1 3-1 1.5 1 3 1" />
+      <path d="M2 21h20M7 8h10v5H7zM9 8V5M12 8V4M15 8V5" />
+    </svg>
+  )
+}
+
+function RingIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 8h8l-2.5 3h-3z" />
+      <circle cx="12" cy="16" r="5" />
+      <path d="m8 8 2-4h4l2 4" />
+    </svg>
+  )
+}
+
+function GiftIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 12v10H4V12M2 7h20v5H2zM12 22V7" />
+      <path d="M12 7H7.5A2.5 2.5 0 1 1 10 4.5C10 6 12 7 12 7zM12 7h4.5A2.5 2.5 0 1 0 14 4.5C14 6 12 7 12 7z" />
+    </svg>
+  )
+}
+
+function GraduationIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m22 10-10-5-10 5 10 5z" />
+      <path d="M6 12v5c3 2 9 2 12 0v-5M22 10v6" />
+    </svg>
+  )
+}
+
+function SparkleIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m12 2 1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z" />
+      <path d="m19 17 .8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z" />
+    </svg>
+  )
+}
+
+function PencilIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 20h9" />
+      <path d="m16.5 3.5 4 4L8 20l-5 1 1-5z" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+function LockIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="10" rx="2" />
+      <path d="M7 11V8a5 5 0 0 1 10 0v3" />
+    </svg>
+  )
+}
+
+function CheckCircleIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <path d="m9 11 3 3L22 4" />
+    </svg>
+  )
+}
+
+function AlertCircleIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 8v4M12 16h.01" />
+    </svg>
+  )
+}
+
+function SpinnerIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.37 0 0 5.37 0 12h4z" />
+    </svg>
+  )
+}
+
+function SuccessCheckIcon({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none">
+      <path
+        className="success-check-path"
+        d="M5 12.5 10 17 19 7"
+        stroke="currentColor"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function FieldError({ error, isRTL }) {
+  if (!error) return null
+
+  return (
+    <p className={`mt-2 flex items-center gap-2 text-xs font-medium text-red-600 ${isRTL ? 'justify-end' : ''}`}>
+      <AlertCircleIcon className="h-4 w-4 shrink-0" />
+      <span>{error}</span>
+    </p>
+  )
+}
+
+function InputField({ id, name, icon: Icon, type = 'text', value, onChange, error, delay = 0, required = false, disabled = false }) {
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === 'ar'
+  const fieldKey = `form.${name}`
+  const errorId = `${id}-error`
+
+  return (
+    <div className="animate-slide-up opacity-0" style={{ animationDelay: `${delay}ms` }}>
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700">
+        {t(`${fieldKey}.label`)}
+      </label>
+      <div className="group relative">
+        <Icon className={`pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition-colors duration-200 group-focus-within:text-brand-500 ${isRTL ? 'right-4' : 'left-4'}`} />
+        <input
+          type={type}
+          id={id}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder={t(`${fieldKey}.placeholder`)}
+          required={required}
+          disabled={disabled}
+          aria-invalid={error ? 'true' : 'false'}
+          aria-describedby={error ? errorId : undefined}
+          className={`
+            h-14 w-full rounded-2xl border bg-white/90 text-[15px] text-slate-900 outline-none
+            transition-all duration-200 placeholder:text-slate-400
+            ${isRTL ? 'pr-12 pl-4 text-right' : 'pl-12 pr-4 text-left'}
+            ${error
+              ? 'border-red-300 shadow-[0_0_0_4px_rgba(239,68,68,0.08)] focus:border-red-400'
+              : 'border-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] hover:border-brand-200 focus:border-brand-500 focus:shadow-input-focus'
+            }
+            ${disabled ? 'cursor-not-allowed opacity-60' : ''}
+          `}
+        />
+      </div>
+      <div id={errorId}>
+        <FieldError error={error} isRTL={isRTL} />
+      </div>
+    </div>
+  )
+}
+
+function SelectField({ id, name, icon: Icon, value, onChange, error, delay = 0 }) {
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === 'ar'
+  const fieldKey = `form.${name}`
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef(null)
+  const occasions = [
+    { value: 'Wedding', label: t('form.occasions.wedding'), icon: RingIcon },
+    { value: 'Birthday', label: t('form.occasions.birthday'), icon: CakeIcon },
+    { value: 'Engagement', label: t('form.occasions.engagement'), icon: GiftIcon },
+    { value: 'Graduation', label: t('form.occasions.graduation'), icon: GraduationIcon },
+    { value: 'Other', label: t('form.occasions.other'), icon: SparkleIcon },
+  ]
+  const selectedOption = occasions.find((option) => option.value === value)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const selectOption = (option) => {
+    onChange({ target: { name, value: option.value } })
+    setIsOpen(false)
+  }
+
+  const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false)
+      return
+    }
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      setIsOpen((prev) => !prev)
+      return
+    }
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setIsOpen(true)
+      const currentIndex = Math.max(0, occasions.findIndex((option) => option.value === value))
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      const nextIndex = (currentIndex + direction + occasions.length) % occasions.length
+      selectOption(occasions[nextIndex])
+    }
+  }
+
+  return (
+    <div className={`animate-slide-up opacity-0 ${isOpen ? 'relative z-[1000]' : 'relative z-20'}`} style={{ animationDelay: `${delay}ms` }}>
+      <label htmlFor={id} className="mb-2 block text-sm font-semibold text-slate-700">
+        {t(`${fieldKey}.label`)}
+      </label>
+      <div className="group relative" ref={dropdownRef}>
+        <Icon className={`pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 transition-colors duration-200 group-focus-within:text-brand-500 ${isRTL ? 'right-4' : 'left-4'}`} />
+        <button
+          type="button"
+          id={id}
+          onClick={() => setIsOpen((prev) => !prev)}
+          onKeyDown={handleKeyDown}
+          aria-haspopup="listbox"
+          aria-expanded={isOpen}
+          aria-controls={`${id}-options`}
+          className={`
+            flex h-14 w-full items-center rounded-2xl border bg-white/90 text-[15px] outline-none
+            transition-all duration-200
+            ${isRTL ? 'pr-12 pl-12 text-right' : 'pl-12 pr-12 text-left'}
+            ${value ? 'text-slate-900' : 'text-slate-400'}
+            ${error
+              ? 'border-red-300 shadow-[0_0_0_4px_rgba(239,68,68,0.08)] focus:border-red-400'
+              : 'border-slate-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] hover:border-brand-200 focus:border-brand-500 focus:shadow-input-focus'
+            }
+          `}
+        >
+          <span className="truncate">{selectedOption ? selectedOption.label : t(`${fieldKey}.placeholder`)}</span>
+        </button>
+        <ChevronDownIcon className={`pointer-events-none absolute top-1/2 h-5 w-5 -translate-y-1/2 text-brand-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${isRTL ? 'left-4' : 'right-4'}`} />
+
+        {isOpen && (
+          <div
+            id={`${id}-options`}
+            role="listbox"
+            aria-label={t(`${fieldKey}.label`)}
+            className={`absolute top-full z-[1001] mt-2 w-full overflow-hidden rounded-2xl border border-slate-100 bg-white/95 p-1.5 shadow-[0_22px_48px_rgba(15,23,42,0.16)] backdrop-blur-xl ${isRTL ? 'right-0' : 'left-0'}`}
+          >
+            {occasions.map((option) => {
+              const OptionIcon = option.icon
+              const isSelected = option.value === value
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => selectOption(option)}
+                  className={`
+                    flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-[15px]
+                    font-medium transition-colors duration-150
+                    ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}
+                    ${isSelected
+                      ? 'bg-brand-500 text-white'
+                      : 'bg-transparent text-slate-700 hover:bg-brand-50 hover:text-slate-900'
+                    }
+                  `}
+                >
+                  <OptionIcon className={`h-5 w-5 shrink-0 ${isSelected ? 'text-white' : 'text-brand-600'}`} />
+                  <span className="flex-1">{option.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+      <FieldError error={error} isRTL={isRTL} />
+    </div>
+  )
+}
+
+function Toast({ show, type, message, onClose }) {
+  const timerRef = useRef(null)
+
+  useEffect(() => {
+    if (show) timerRef.current = setTimeout(onClose, 4500)
+    return () => clearTimeout(timerRef.current)
+  }, [show, onClose])
+
+  if (!show) return null
+
+  const variant = type === 'success'
+    ? 'bg-brand-600 text-white shadow-brand-500/25'
+    : 'bg-red-600 text-white shadow-red-500/25'
+
+  return (
+    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-toast-in">
+      <div className={`flex items-center gap-3 rounded-2xl px-5 py-4 text-sm font-semibold shadow-2xl ${variant}`}>
+        {type === 'success' ? <CheckCircleIcon className="h-5 w-5" /> : <AlertCircleIcon className="h-5 w-5" />}
+        <span>{message}</span>
+      </div>
+    </div>
+  )
+}
+
+export default function ContactForm() {
+  const { t, i18n } = useTranslation()
+  const isRTL = i18n.language === 'ar'
+  const [formData, setFormData] = useState({
+    fullName: '',
+    phoneNumber: '',
+    birthDate: '',
+    occasion: '',
+    otherOccasion: '',
+  })
+  const [errors, setErrors] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [submitPhase, setSubmitPhase] = useState('idle')
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [submitted, setSubmitted] = useState(false)
+  const submitButtonRef = useRef(null)
+  const buttonResetTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => clearTimeout(buttonResetTimerRef.current)
+  }, [])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'occasion' && value !== 'Other' ? { otherOccasion: '' } : {}),
+    }))
+    if (errors[name] || (name === 'occasion' && errors.otherOccasion)) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+        ...(name === 'occasion' ? { otherOccasion: '' } : {}),
+      }))
+    }
+  }
+
+  const validate = () => {
+    const nextErrors = {}
+    if (!formData.fullName.trim()) nextErrors.fullName = t('form.fullName.error')
+    if (!formData.phoneNumber.trim()) nextErrors.phoneNumber = t('form.phoneNumber.error')
+    else if (!validatePhone(formData.phoneNumber)) nextErrors.phoneNumber = t('form.validation.invalidPhone')
+    if (!formData.birthDate) nextErrors.birthDate = t('form.birthDate.error')
+    if (!formData.occasion) nextErrors.occasion = t('form.occasion.error')
+    if (formData.occasion === 'Other' && !formData.otherOccasion.trim()) {
+      nextErrors.otherOccasion = t('form.otherOccasion.error')
+    }
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
+  }
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type })
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validate()) {
+      showToast(t('form.validation.required'), 'error')
+      return
+    }
+
+    setLoading(true)
+    setSubmitPhase('processing')
+    try {
+      await Promise.all([
+        fetch(API_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fullName: formData.fullName.trim(),
+            phoneNumber: formData.phoneNumber.trim(),
+            birthDate: formData.birthDate,
+            occasion: formData.occasion === 'Other' ? formData.otherOccasion.trim() : formData.occasion,
+          }),
+        }),
+        wait(750),
+      ])
+
+      setSubmitPhase('success')
+      window.setTimeout(() => launchRealisticConfetti(submitButtonRef.current), 90)
+      setSubmitted(true)
+      showToast(t('form.submit.success'), 'success')
+      setFormData({ fullName: '', phoneNumber: '', birthDate: '', occasion: '', otherOccasion: '' })
+      setErrors({})
+      setTimeout(() => setSubmitted(false), 5000)
+      clearTimeout(buttonResetTimerRef.current)
+      buttonResetTimerRef.current = setTimeout(() => {
+        setSubmitPhase('idle')
+        setLoading(false)
+      }, 1900)
+    } catch (err) {
+      console.error(err)
+      setSubmitPhase('idle')
+      showToast(t('form.submit.error'), 'error')
+      setLoading(false)
+    } finally {
+      if (submitPhase === 'idle') setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <section className="relative z-10 w-full max-w-[500px] animate-fade-in" dir={isRTL ? 'rtl' : 'ltr'}>
+        <div className="absolute -inset-7 rounded-[42px] bg-[radial-gradient(circle_at_20%_20%,rgba(0,159,121,0.16),transparent_38%),radial-gradient(circle_at_85%_10%,rgba(212,168,67,0.12),transparent_35%),radial-gradient(circle_at_50%_100%,rgba(0,159,121,0.10),transparent_42%)] blur-2xl" />
+
+        <div className="relative overflow-visible rounded-[30px] border border-white/80 bg-white/95 shadow-[0_28px_80px_rgba(15,23,42,0.14),0_8px_24px_rgba(0,159,121,0.08),inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_top,rgba(0,159,121,0.10),transparent_68%)]" />
+          <div className="relative px-6 py-8 sm:px-10 sm:py-10">
+            <header className="text-center">
+              <div className="mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full bg-white shadow-[0_18px_42px_rgba(15,23,42,0.10),0_0_0_8px_rgba(0,159,121,0.05)]">
+                <img src="/logo.jpg" alt="Almond Cakes" className="h-20 w-20 object-contain" />
+              </div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-600">
+                Almond Cakes
+              </p>
+              <h1 className="text-3xl font-bold leading-tight text-slate-950 sm:text-[34px]">
+                {t('form.title')}
+              </h1>
+              <p className="mx-auto mt-3 max-w-sm text-[15px] leading-7 text-slate-500">
+                {t('form.subtitle')}
+              </p>
+            </header>
+
+            <div className="my-7 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+
+            <div className={`overflow-hidden transition-all duration-500 ${submitted ? 'mb-5 max-h-24' : 'max-h-0'}`}>
+              <div className="flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 text-sm font-semibold text-brand-700">
+                <CheckCircleIcon className="h-5 w-5 shrink-0" />
+                <span>{t('form.submit.success')}</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} noValidate className="space-y-5">
+              <InputField id="fullName" name="fullName" icon={UserIcon} value={formData.fullName} onChange={handleChange} error={errors.fullName} delay={80} />
+              <InputField id="phoneNumber" name="phoneNumber" icon={PhoneIcon} type="tel" value={formData.phoneNumber} onChange={handleChange} error={errors.phoneNumber} delay={150} />
+              <InputField id="birthDate" name="birthDate" icon={CalendarIcon} type="date" value={formData.birthDate} onChange={handleChange} error={errors.birthDate} delay={220} />
+              <SelectField id="occasion" name="occasion" icon={CakeIcon} value={formData.occasion} onChange={handleChange} error={errors.occasion} delay={290} />
+              <div
+                aria-live="polite"
+                aria-hidden={formData.occasion !== 'Other'}
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  formData.occasion === 'Other'
+                    ? 'max-h-32 opacity-100'
+                    : 'max-h-0 opacity-0'
+                }`}
+              >
+                <InputField
+                  id="otherOccasion"
+                  name="otherOccasion"
+                  icon={PencilIcon}
+                  value={formData.otherOccasion}
+                  onChange={handleChange}
+                  error={errors.otherOccasion}
+                  delay={0}
+                  required={formData.occasion === 'Other'}
+                  disabled={formData.occasion !== 'Other'}
+                />
+              </div>
+
+              <div className="pt-2 animate-slide-up opacity-0" style={{ animationDelay: '360ms' }}>
+                <button
+                  ref={submitButtonRef}
+                  type="submit"
+                  disabled={loading || submitPhase !== 'idle'}
+                  className={`realistic-submit-button group relative flex h-14 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl px-6 text-base font-bold text-white shadow-[0_14px_28px_rgba(0,159,121,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_rgba(0,159,121,0.34)] active:translate-y-0 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${
+                    submitPhase === 'processing'
+                      ? 'is-processing bg-brand-700'
+                      : submitPhase === 'success'
+                        ? 'is-success bg-brand-500'
+                      : 'bg-brand-500 hover:bg-brand-600'
+                  }`}
+                >
+                  <span className="submit-label">{t('form.submit.button')}</span>
+                  <span className="submit-center-icon submit-processing-icon" aria-label={t('form.submit.sending')}>
+                    <span className="realistic-spinner" />
+                  </span>
+                  <span className="submit-center-icon submit-success-icon" aria-label={t('form.submit.success')}>
+                    <SuccessCheckIcon className="h-7 w-7 text-white" />
+                  </span>
+                </button>
+              </div>
+            </form>
+
+            <footer className="mt-7 flex items-center justify-center gap-2 text-xs font-medium text-slate-400">
+              <LockIcon className="h-4 w-4 text-brand-500/80" />
+              <span>{t('form.secure')}</span>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+      <Toast
+        show={toast.show}
+        type={toast.type}
+        message={toast.message}
+        onClose={() => setToast((prev) => ({ ...prev, show: false }))}
+      />
+    </>
+  )
+}

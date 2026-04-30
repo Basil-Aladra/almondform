@@ -1,4 +1,4 @@
-﻿// GOOGLE APPS SCRIPT - Save this to your Google Apps Script project
+// GOOGLE APPS SCRIPT - Save this to your Google Apps Script project
 // Go to https://script.google.com and create a new project
 
 function doPost(e) {
@@ -11,11 +11,10 @@ function doPost(e) {
     
     // Add the data as a new row
     sheet.appendRow([
-      new Date(),
-      data.name,
-      data.email,
-      data.phone,
-      data.message
+      data.fullName,
+      data.phoneNumber,
+      data.birthDate,
+      data.occasion
     ]);
     
     // Return success response
@@ -39,10 +38,10 @@ function doPost(e) {
 // Test function (optional - for debugging in Apps Script editor)
 function testPost() {
   const testData = {
-    name: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1 (555) 123-4567',
-    message: 'This is a test message'
+    fullName: 'John Doe',
+    phoneNumber: '+1 (555) 123-4567',
+    birthDate: '1990-01-01',
+    occasion: 'Wedding'
   };
   
   const mockEvent = {

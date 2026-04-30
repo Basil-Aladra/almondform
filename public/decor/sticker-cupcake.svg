@@ -1,0 +1,33 @@
+<svg width="380" height="380" viewBox="0 0 380 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="42" y="38" width="296" height="302" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="15" flood-color="#0F172A" flood-opacity=".18"/>
+      <feDropShadow dx="0" dy="7" stdDeviation="7" flood-color="#D4A843" flood-opacity=".16"/>
+    </filter>
+    <linearGradient id="frost" x1="126" y1="60" x2="257" y2="214" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset=".55" stop-color="#FFF2D7"/>
+      <stop offset="1" stop-color="#EFC9A2"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="105" y1="201" x2="276" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00B98D"/>
+      <stop offset="1" stop-color="#006E55"/>
+    </linearGradient>
+    <linearGradient id="berry" x1="180" y1="47" x2="215" y2="85" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E75C7B"/>
+      <stop offset="1" stop-color="#9E2445"/>
+    </linearGradient>
+  </defs>
+  <g filter="url(#shadow)">
+    <path d="M191 49c29 0 33 36 19 49 45-3 70 31 61 65 30 7 38 50 12 72H96c-27-23-18-65 13-72-8-34 17-68 61-65-13-13-8-49 21-49Z" fill="url(#frost)"/>
+    <path d="M121 157c34 23 77 4 108-15 9-6 20-2 23 9 6 19 19 32 36 39 2 16-3 32-16 45H108c-18-18-21-44-8-62 5-8 14-13 21-16Z" fill="#FFFDF8" opacity=".72"/>
+    <path d="M115 221h151l-20 94H135l-20-94Z" fill="url(#cup)"/>
+    <path d="M131 233h18l10 71h-15l-13-71ZM182 233h18l-2 71h-16v-71ZM232 233h18l-13 71h-15l10-71Z" fill="#FFFFFF" opacity=".2"/>
+    <path d="M107 216h168c8 0 14 6 14 14v1c0 8-6 14-14 14H107c-8 0-14-6-14-14v-1c0-8 6-14 14-14Z" fill="#F8E6C9"/>
+    <path d="M181 50c8-12 29-7 35 8 6 17-13 34-34 25-19-8-11-24-1-33Z" fill="url(#berry)"/>
+    <path d="M208 58c10-12 23-16 40-11-11 16-24 21-40 11Z" fill="#009F79"/>
+    <circle cx="146" cy="138" r="7" fill="#D4A843"/>
+    <circle cx="221" cy="116" r="6" fill="#009F79"/>
+    <circle cx="250" cy="174" r="6" fill="#7A3F2C"/>
+  </g>
+</svg>
