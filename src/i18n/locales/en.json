@@ -1,8 +1,9 @@
 {
   "form": {
-    "title": "Event Booking Form",
-    "subtitle": "Tell us about your occasion, and we will help create an unforgettable experience.",
-    "secure": "Your data is secure and protected",
+    "valueBadge": "Your opinion contributes to creating the best",
+    "title": "We Listen to Your Refined Taste",
+    "subtitle": "Your valuable contribution helps us craft dessert and beverage experiences fit for every special moment.",
+    "secure": "Your data is secure and protected, and used exclusively to improve the quality of our products and services.",
     "fullName": {
       "label": "Full Name",
       "placeholder": "Enter your full name",
@@ -11,6 +12,7 @@
     "phoneNumber": {
       "label": "Phone Number",
       "placeholder": "Enter your phone number",
+      "help": "You may include the country code.",
       "error": "Phone number is required"
     },
     "birthDate": {
@@ -21,11 +23,12 @@
     "occasion": {
       "label": "Occasion Type",
       "placeholder": "Select occasion type",
+      "help": "Choose Other if your occasion is not listed.",
       "error": "Please select an occasion type"
     },
     "otherOccasion": {
       "label": "Other Occasion Details",
-      "placeholder": "Please write the occasion here...",
+      "placeholder": "Please write the occasion here",
       "error": "Please write the occasion details"
     },
     "occasions": {
@@ -36,10 +39,14 @@
       "other": "Other"
     },
     "submit": {
-      "button": "Submit",
+      "button": "Submit Your Contribution",
       "sending": "Sending...",
-      "success": "Your request was sent successfully!",
-      "error": "Failed to submit your request. Please try again."
+      "success": "Your contribution was sent successfully!",
+      "error": "Failed to submit your contribution. Please try again."
+    },
+    "thankYou": {
+      "title": "Thank You",
+      "message": "Thank you for your valuable contribution! Your data will help us deliver unforgettable experiences."
     },
     "validation": {
       "required": "Please complete the required fields",

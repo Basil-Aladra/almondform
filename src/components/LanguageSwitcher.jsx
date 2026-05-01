@@ -41,7 +41,7 @@ export default function LanguageSwitcher() {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex h-11 items-center gap-2 rounded-full border border-brand-500/20 bg-white/85 px-4 text-sm font-semibold text-slate-700 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-200 hover:border-brand-500/40 hover:text-brand-700 ${isRTL ? 'flex-row-reverse' : ''}`}
+        className={`flex h-11 items-center gap-2 rounded-full border border-brand-500/20 bg-white/85 px-4 text-sm font-semibold text-slate-700 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-200 hover:border-brand-500/40 hover:text-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/20 focus-visible:ring-offset-2 ${isRTL ? 'flex-row-reverse' : ''}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -56,7 +56,7 @@ export default function LanguageSwitcher() {
               key={language.code}
               type="button"
               onClick={() => toggleLanguage(language.code)}
-              className={`flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors duration-150 hover:bg-brand-50 ${currentLanguage === language.code ? 'text-brand-700' : 'text-slate-600'} ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}
+              className={`flex w-full items-center justify-between px-4 py-2.5 text-sm font-medium transition-colors duration-150 hover:bg-brand-50 focus:outline-none focus-visible:bg-brand-50 ${currentLanguage === language.code ? 'text-brand-700' : 'text-slate-600'} ${isRTL ? 'flex-row-reverse text-right' : 'text-left'}`}
               role="option"
               aria-selected={currentLanguage === language.code}
             >
