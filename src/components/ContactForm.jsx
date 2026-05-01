@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyBynvjE-NpcDXzINOjquFfoxOSlrGvIx0eG3s0U2pzmfdV6czoIyeEJeykbLg5Zw/exec";
+  "https://script.google.com/macros/s/AKfycbzME6ZuUPR1Og8-YatmoI8hXNc4Z5xuBGGGhmrueLoiFvhcCHe3nVJyIRTVhVqCOmhn/exec";
 
 const validatePhone = (phone) =>
   /^[\d\s\-+()]+$/.test(phone) && phone.replace(/\D/g, "").length >= 8;
