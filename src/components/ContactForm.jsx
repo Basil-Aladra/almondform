@@ -848,12 +848,6 @@ export default function ContactForm() {
                 <InsightIcon className="h-4 w-4 shrink-0 text-gold-400" />
                 <span>{t("form.valueBadge")}</span>
               </div>
-              <h1 className="font-luxury-ar text-[30px] font-bold leading-tight text-slate-950 sm:text-[36px]">
-                {t("form.title")}
-              </h1>
-              <p className="mx-auto mt-3 max-w-[360px] text-[14.5px] font-medium leading-7 text-slate-500 sm:text-[15px]">
-                {t("form.subtitle")}
-              </p>
             </header>
 
             <div className="my-6 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent sm:my-7" />
