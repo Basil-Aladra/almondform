@@ -46,7 +46,10 @@
     },
     "thankYou": {
       "title": "شكرًا جزيلاً",
-      "message": "شكرًا جزيلاً لمساهمتك القيمة! بياناتك ستساعدنا في تقديم تجارب لا تُنسى."
+      "message": "شكرًا جزيلاً لمساهمتك القيمة! بياناتك ستساعدنا في تقديم تجارب لا تُنسى.",
+      "googleReviewText": "هل يمكنك أن تشاركنا رأيك عن Almond Cakes على Google؟",
+      "googleReviewButton": "قيّمنا على Google",
+      "googleReviewNoThanks": "ربما لاحقاً"
     },
     "validation": {
       "required": "يرجى إكمال الحقول المطلوبة",

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
+import _ from "lodash";
 
 const API_URL =
   "https://script.google.com/macros/s/AKfycbzME6ZuUPR1Og8-YatmoI8hXNc4Z5xuBGGGhmrueLoiFvhcCHe3nVJyIRTVhVqCOmhn/exec";
@@ -8,6 +9,25 @@ const validatePhone = (phone) =>
   /^[\d\s\-+()]+$/.test(phone) && phone.replace(/\D/g, "").length >= 8;
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const BIRTH_DATE_FORMAT = "YYYY/MM/DD";
+const BIRTH_DATE_MIN = "1920-01-01";
+
+const getTodayISO = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const displayDateToISO = (value) => {
+  const match = /^(\d{4})\/(\d{2})\/(\d{2})$/.exec(value);
+  if (!match) return value;
+
+  return `${match[1]}-${match[2]}-${match[3]}`;
+};
 
 function launchRealisticConfetti(originElement) {
   if (typeof window === "undefined" || !originElement) return;
@@ -397,8 +417,23 @@ function SuccessCheckIcon({ className }) {
   );
 }
 
+function StarIcon({ className }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+    >
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+}
+
+
 function ThankYouPanel() {
   const { t } = useTranslation();
+  const [showReviewCta, setShowReviewCta] = useState(true);
 
   return (
     <div className="thank-you-panel animate-thank-you-in py-8 text-center sm:py-10">
@@ -411,6 +446,42 @@ function ThankYouPanel() {
       <p className="mx-auto mt-3 max-w-[350px] text-[15px] font-medium leading-7 text-slate-500">
         {t("form.thankYou.message")}
       </p>
+
+      {showReviewCta && (
+        <div 
+          className="mx-auto mt-8 max-w-[400px] animate-slide-up rounded-2xl border border-gold-400/20 bg-[linear-gradient(135deg,rgba(255,249,237,0.4),rgba(255,255,255,0.6))] p-6 shadow-[0_8px_24px_rgba(212,168,67,0.06)] opacity-0" 
+          style={{ animationDelay: '300ms', animationFillMode: 'forwards' }}
+        >
+          <div className="mb-4 flex justify-center gap-1 text-gold-400">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <StarIcon key={star} className="h-5 w-5 drop-shadow-sm" />
+            ))}
+          </div>
+          <p className="mb-5 text-[15px] font-semibold leading-relaxed text-slate-700">
+            {t("form.thankYou.googleReviewText")}
+          </p>
+          <div className="flex flex-col items-center gap-3">
+            <a
+              href="https://g.page/r/CQ_PcautRl-UEBM/review"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#009F79] px-6 py-3.5 text-[15px] font-bold text-white shadow-[0_4px_14px_rgba(0,159,121,0.3)] transition-all duration-200 hover:bg-[#007d60] hover:shadow-[0_6px_20px_rgba(0,159,121,0.4)] hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                 <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" />
+              </svg>
+              <span>{t("form.thankYou.googleReviewButton")}</span>
+            </a>
+            <button
+              type="button"
+              className="mt-1 text-[13px] font-semibold text-slate-400 transition-colors duration-200 hover:text-slate-600"
+              onClick={() => setShowReviewCta(false)}
+            >
+              {t("form.thankYou.googleReviewNoThanks")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -488,6 +559,150 @@ function InputField({
           {help}
         </p>
       )}
+      <div id={errorId}>
+        <FieldError error={error} isRTL={isRTL} />
+      </div>
+    </div>
+  );
+}
+
+function BirthDateField({
+  id,
+  name,
+  icon: Icon,
+  value,
+  onChange,
+  error,
+  delay = 0,
+}) {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === "ar";
+  const fieldKey = `form.${name}`;
+  const errorId = `${id}-error`;
+  const inputRef = useRef(null);
+  const pickerRef = useRef(null);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return undefined;
+
+    input.value = value || "";
+  }, [value]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return undefined;
+
+    input.value = value || "";
+    let isMounted = true;
+
+    const handleDateChange = () => {
+      onChange({ target: { name, value: input.value } });
+    };
+
+    const initDatepicker = async () => {
+      globalThis._ = _;
+      globalThis.$hsSelectCollection = globalThis.$hsSelectCollection || [];
+      globalThis.$hsDatepickerCollection =
+        globalThis.$hsDatepickerCollection || [];
+      const { default: HSDatepicker } = await import("@preline/datepicker");
+
+      if (!isMounted || !input.isConnected) return;
+
+      const picker = new HSDatepicker(input, {
+        type: "default",
+        mode: "default",
+        inputMode: true,
+        openOnFocus: true,
+        positionToInput: "auto",
+        dateMin: BIRTH_DATE_MIN,
+        dateMax: getTodayISO(),
+        dateFormat: BIRTH_DATE_FORMAT,
+        dateLocale: isRTL ? "ar" : "en-US",
+        locale: isRTL ? "ar" : "en-US",
+        selectedDates: value ? [displayDateToISO(value)] : [],
+        settings: {
+          selection: {
+            year: true,
+            month: true,
+          },
+        },
+        styles: {
+          calendar: "almond-datepicker-panel",
+          arrowPrev: "almond-datepicker-arrow",
+          arrowNext: "almond-datepicker-arrow",
+        },
+        templates: {
+          arrowPrev:
+            '<button type="button" data-vc-arrow="prev" aria-label="Previous month"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></button>',
+          arrowNext:
+            '<button type="button" data-vc-arrow="next" aria-label="Next month"><svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg></button>',
+        },
+      });
+
+      pickerRef.current = picker;
+      input.addEventListener("change.hs.datepicker", handleDateChange);
+    };
+
+    initDatepicker();
+
+    return () => {
+      isMounted = false;
+      input.removeEventListener("change.hs.datepicker", handleDateChange);
+      pickerRef.current?.destroy();
+      pickerRef.current = null;
+    };
+  }, [i18n.language]);
+
+  const clearDate = () => {
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+
+    onChange({ target: { name, value: "" } });
+  };
+
+  return (
+    <div
+      className="form-field almond-datepicker-field animate-slide-up opacity-0"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <label htmlFor={id} className="form-label">
+        {t(`${fieldKey}.label`)}
+      </label>
+      <div className="group relative">
+        <Icon className={`field-icon ${isRTL ? "right-4" : "left-4"}`} />
+        <input
+          ref={inputRef}
+          type="text"
+          id={id}
+          name={name}
+          defaultValue={value}
+          placeholder={t(`${fieldKey}.placeholder`)}
+          readOnly
+          inputMode="none"
+          autoComplete="bday"
+          aria-invalid={error ? "true" : "false"}
+          aria-describedby={error ? errorId : undefined}
+          className={`
+            hs-datepicker field-control cursor-pointer
+            ${isRTL ? "pr-12 pl-12 text-right" : "pl-12 pr-12 text-left"}
+            ${error ? "field-control-error" : "field-control-normal"}
+          `}
+        />
+        {value && (
+          <button
+            type="button"
+            onClick={clearDate}
+            aria-label={t("form.birthDate.clear", {
+              defaultValue: "Clear birth date",
+            })}
+            className={`datepicker-clear-button ${isRTL ? "left-4" : "right-4"}`}
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        )}
+      </div>
       <div id={errorId}>
         <FieldError error={error} isRTL={isRTL} />
       </div>
@@ -881,11 +1096,10 @@ export default function ContactForm() {
                     help={t("form.phoneNumber.help", { defaultValue: "" })}
                     delay={150}
                   />
-                  <InputField
+                  <BirthDateField
                     id="birthDate"
                     name="birthDate"
                     icon={CalendarIcon}
-                    type="date"
                     value={formData.birthDate}
                     onChange={handleChange}
                     error={errors.birthDate}

@@ -9,10 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@preline/datepicker": "^4.1.4",
     "i18next": "^26.0.8",
+    "lodash": "^4.18.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-i18next": "^17.0.6"
+    "react-i18next": "^17.0.6",
+    "vanilla-calendar-pro": "^3.1.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

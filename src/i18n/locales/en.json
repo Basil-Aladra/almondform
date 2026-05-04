@@ -44,7 +44,10 @@
     },
     "thankYou": {
       "title": "Thank You",
-      "message": "Thank you for your valuable contribution! Your data will help us deliver unforgettable experiences."
+      "message": "Thank you for your valuable contribution! Your data will help us deliver unforgettable experiences.",
+      "googleReviewText": "Would you like to share your experience about Almond Cakes on Google?",
+      "googleReviewButton": "Review us on Google",
+      "googleReviewNoThanks": "Maybe later"
     },
     "validation": {
       "required": "Please complete the required fields",
